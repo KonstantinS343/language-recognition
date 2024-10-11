@@ -3,9 +3,13 @@ from typing import Sequence, Mapping
 from collections import defaultdict
 import re
 
+from langdetect import detect
+from decimal import Decimal
+
 from parser.html_parser import Parser
 from recognition.n_gramm.ngramm import Ngramm
-from models.model import RecognitionMethod, FileObject, Language, QueryRespose
+from recognition.alphabet.alphabet import Alphabet
+from models.model import RecognitionMethod, FileObject, Language, QueryRespose, LanguageResponse
 
 
 class Controller:
@@ -15,39 +19,50 @@ class Controller:
     @classmethod
     async def init_resolver_mapping(cls):
         cls.resolver_mapping = {
-            'ngramm': cls.ngramms,
-            'alphabet': cls.alphabet,
-            'neuro': cls.neuro,
+            'ngramm': Ngramm.ngramm_methods,
+            'alphabet': Alphabet.alphabet_method,
+            'neuro': Alphabet.alphabet_method,
         }
     
     @classmethod
-    async def resolve(cls, texts: Sequence[FileObject], recognition_method: RecognitionMethod):
+    async def resolve(cls, texts: Sequence[FileObject], recognition_method: RecognitionMethod) -> Sequence[QueryRespose]:
         if not hasattr(cls, 'resolver_mapping'):
             await cls.init_resolver_mapping()
-        return await cls.resolver_mapping[recognition_method.value](texts)
-    
-    @classmethod
-    async def ngramms(cls, texts: Sequence[FileObject]):
+            
         language_recognition = []
         
         for text in texts:
-            user_profile = await cls.preprocess_ngramms_data(text=text.content)
+            if recognition_method == RecognitionMethod.ALPHABET:
+                user_profile = await cls.preprocess_alphabet_data(text=text.content)
+            elif recognition_method == RecognitionMethod.NGRAMM:
+                user_profile = await cls.preprocess_ngramm_data(text=text.content)
+                
+            with open('log.json', 'w') as f:
+                json.dump(user_profile, f, indent=4, ensure_ascii=False)
+                
+            prediction =  await cls.resolver_mapping[recognition_method.value](user_profile)
             
-            language_recognition.append((text.filename, await Ngramm.ngramm_methods(user_profile)))
+            language_recognition.append((text.filename, prediction))
+        
+        precision = await cls.calculate_precision(language_recognition, texts)
             
         
-        return await cls.response(language_recognition)
-    
-    @classmethod  
-    def alphabet(cls, texts: Sequence[str]):
-        ...
-    
-    @classmethod   
-    def neuro(cls, texts: Sequence[str]):
-        ...
+        return await cls.response(language_recognition, precision)
         
     @classmethod
-    async def preprocess_ngramms_data(cls, text: str) -> Mapping[str, int]:
+    async def preprocess_alphabet_data(cls, text: str) -> Mapping[str, int]:
+        content = await Parser.parse(text)
+        new_text = re.sub(r'(\b\w*\d\w*\b|[^a-zA-Zа-яА-Я0-9\s])', ' ', content).strip()
+        
+        letter_counts = defaultdict(int)
+        for letter in new_text:
+            if letter.isalpha():
+                letter_counts[letter] += 1
+                
+        return letter_counts
+        
+    @classmethod
+    async def preprocess_ngramm_data(cls, text: str) -> Mapping[str, int]:
         content = await Parser.parse(text)
         new_text = re.sub(r'(\b\w*\d\w*\b|[^a-zA-Zа-яА-Я0-9\s])', ' ', content).strip()
             
@@ -67,15 +82,25 @@ class Controller:
         return dict(sorted(user_profile.items(), key=lambda x:x[1], reverse=True))
     
     @classmethod
-    async def response(cls, language_recognition: Sequence[Sequence[str|Language]]):
+    async def calculate_precision(cls, language_recognition: Sequence[Sequence[str|Language]], texts: Sequence[FileObject]):
+        precision = len(texts)
+        
+        for text_id in range(len(texts)):
+            detected_lang = Language.RUSSIAN if detect(texts[text_id].content) == 'ru' else 'en'
+            precision += 1 if detected_lang == language_recognition[text_id][0] else 0
+        
+        return Decimal(precision / len(texts))
+    
+    @classmethod
+    async def response(cls, language_recognition: Sequence[Sequence[str|Language]], precision: Decimal) -> QueryRespose:
         reponse = []
         
         for i in language_recognition:
             reponse.append(
-                QueryRespose(
+                LanguageResponse(
                     doc=cls.IP + i[0],
                     language=i[1].value
                 )
             )
         
-        return reponse
+        return QueryRespose(response=reponse, precision=precision)

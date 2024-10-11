@@ -1,8 +1,6 @@
 import aiofiles
 from fastapi import APIRouter, UploadFile
 
-from typing import List
-
 from recognition.controller import Controller
 from models.model import RecognitionMethod, FileObject, QueryRespose
 
@@ -12,7 +10,7 @@ query_router = APIRouter(prefix='/query', tags=["User"])
 
 
 @query_router.post('/')
-async def query(files: list[UploadFile], recognition_method: RecognitionMethod) -> List[QueryRespose]:
+async def query(files: list[UploadFile], recognition_method: RecognitionMethod) -> QueryRespose:
     
     """
     Processes uploaded files, filters out only those with the content type 'text/html',

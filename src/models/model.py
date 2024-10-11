@@ -1,4 +1,5 @@
-from typing import NamedTuple
+from typing import NamedTuple, List
+from decimal import Decimal
 from enum import Enum
 
 from pydantic import BaseModel
@@ -16,7 +17,10 @@ class Language(Enum):
     RUSSIAN = 'Russian'
     ENGLISH = 'English'
     
-
-class QueryRespose(BaseModel):
+class LanguageResponse(BaseModel):
     doc: str
     language: str
+
+class QueryRespose(BaseModel):
+    response: List[LanguageResponse]
+    precision: Decimal
