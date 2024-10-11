@@ -17,7 +17,6 @@ class Ngramm:
             
         ru_dist = await cls.distance(user_profile, ru_dataset_profile)
         en_dist = await cls.distance(user_profile, en_dataset_profile)
-        print(ru_dist, en_dist)
         
         return Language.RUSSIAN if ru_dist < en_dist else Language.ENGLISH
             
@@ -26,7 +25,7 @@ class Ngramm:
     async def distance(cls, user_profile: Mapping[str, int], dataset_profile: Mapping[str, int]) -> int:
         dist = 0
         
-        max_dist = len(dataset_profile)
+        max_dist = 100_000_000_000
         user_profile_list = list(user_profile.keys())
         dataset_profile_list = list(dataset_profile.keys())
         

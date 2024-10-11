@@ -10,6 +10,8 @@ from models.model import RecognitionMethod, FileObject, Language, QueryRespose
 
 class Controller:
     
+    IP = 'http://localhost:2000/static/'
+    
     @classmethod
     async def init_resolver_mapping(cls):
         cls.resolver_mapping = {
@@ -30,9 +32,6 @@ class Controller:
         
         for text in texts:
             user_profile = await cls.preprocess_ngramms_data(text=text.content)
-            
-            with open('temp', 'w') as f:
-                json.dump(user_profile, f, indent=4, ensure_ascii=False)
             
             language_recognition.append((text.filename, await Ngramm.ngramm_methods(user_profile)))
             
@@ -74,7 +73,7 @@ class Controller:
         for i in language_recognition:
             reponse.append(
                 QueryRespose(
-                    doc=i[0],
+                    doc=cls.IP + i[0],
                     language=i[1].value
                 )
             )
