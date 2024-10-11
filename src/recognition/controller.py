@@ -86,10 +86,12 @@ class Controller:
         precision = len(texts)
         
         for text_id in range(len(texts)):
-            detected_lang = Language.RUSSIAN if detect(texts[text_id].content) == 'ru' else 'en'
-            precision += 1 if detected_lang == language_recognition[text_id][0] else 0
-        
-        return Decimal(precision / len(texts))
+            content = await Parser.parse(texts[text_id].content)
+
+            detected_lang = Language.RUSSIAN if detect(content) == 'ru' else Language.ENGLISH
+            precision -= 0 if detected_lang == language_recognition[text_id][1] else 1
+            
+        return Decimal(precision / len(texts)).quantize(Decimal('1.000'))
     
     @classmethod
     async def response(cls, language_recognition: Sequence[Sequence[str|Language]], precision: Decimal) -> QueryRespose:
