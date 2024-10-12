@@ -286,7 +286,8 @@ def main(validation_save_path, last_epoch_save_path):
     neuro_method.train_mod()
     neuro_method.train(
         optimizer, loss, 1, train_loader, validation_loader, validation_save_path, last_epoch_save_path
-    ) 
+    )
+    print("Testing...")
     neuro_method.eval_mod()
     neuro_method.test(test_loader)
 
