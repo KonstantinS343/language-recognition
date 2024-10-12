@@ -205,7 +205,7 @@ def auto_create_neuro(
         tokenizer, encoder,
         window_size, window_stride, num_classes,
         device, layers_dtype, tokenizer_dtype,
-        encoder_output= 768, hidden_layers=[384, 192], encoder_requires_gradients=False
+        encoder_output_size= 768, hidden_layers=[384, 192], encoder_requires_gradients=False
     )
     neuro_method = NeuroMethod(classifier_model, device, layers_dtype, weights_filename=path_to_load_model)
     if custom_labels_mapping is not None:
@@ -225,8 +225,8 @@ def load_text(path, shuffle=False):
 
 
 def make_dataset_content(regexp, shuffle=False):
-    en_texts = load_text("/home/vodohleb/PycharmProjects/huyna/en.json", shuffle=shuffle)
-    ru_texts = load_text("/home/vodohleb/PycharmProjects/huyna/ru.json", shuffle=shuffle)
+    en_texts = load_text("/home/vodohleb/PycharmProjects/huyna/en.json", shuffle=shuffle)[:100]
+    ru_texts = load_text("/home/vodohleb/PycharmProjects/huyna/ru.json", shuffle=shuffle)[:100]
     texts = []
     labels = []
     en_index, ru_index = 0, 0
