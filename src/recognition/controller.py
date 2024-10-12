@@ -9,19 +9,24 @@ from decimal import Decimal
 from parser.html_parser import Parser
 from recognition.n_gramm.ngramm import Ngramm
 from recognition.alphabet.alphabet import Alphabet
+from recognition.neuro.neuro import NeuroMethod, auto_create_neuro
 from models.model import RecognitionMethod, FileObject, Language, QueryRespose, LanguageResponse
 
 
 class Controller:
     
     IP = 'http://localhost:2000/static/'
+    NETWORK_NET_WEIGHTS = None# "/pass/to/model/weights.pt"
     
     @classmethod
     async def init_resolver_mapping(cls):
         cls.resolver_mapping = {
             'ngramm': Ngramm.ngramm_methods,
             'alphabet': Alphabet.alphabet_method,
-            'neuro': Alphabet.alphabet_method,
+            'neuro': auto_create_neuro(
+                window_size=256, window_stride=128, num_classes=2,
+                path_to_load_model=Controller.NETWORK_NET_WEIGHTS
+            ).get_language
         }
     
     @classmethod
@@ -36,6 +41,9 @@ class Controller:
                 user_profile = await cls.preprocess_alphabet_data(text=text.content)
             elif recognition_method == RecognitionMethod.NGRAMM:
                 user_profile = await cls.preprocess_ngramm_data(text=text.content)
+            elif recognition_method == RecognitionMethod.NEURO:
+                content = await Parser.parse(text.content)
+                user_profile = re.sub(r'(\b\w*\d\w*\b|[^a-zA-Zа-яА-Я0-9\s])', ' ', content).strip()
                 
             with open('log.json', 'w') as f:
                 json.dump(user_profile, f, indent=4, ensure_ascii=False)
