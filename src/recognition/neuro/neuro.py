@@ -145,7 +145,7 @@ class NeuroMethod:
         print(f"Time spent on training:\t{datetime.datetime.now() - start}\n"
               f"\tBest vaidation loss: {best_val_loss} on epoch {best_val_loss_epoch + 1}")
         if file_to_save_last_model:
-            self._save_model(file_to_save_best_val_model)
+            self._save_model(file_to_save_last_model)
             
 
     def test(self, test_loader):
@@ -226,8 +226,8 @@ def load_text(path, shuffle=False):
 
 
 def make_dataset_content(regexp, shuffle=False):
-    en_texts = load_text("/home/vodohleb/PycharmProjects/huyna/en.json", shuffle=shuffle)[:100]
-    ru_texts = load_text("/home/vodohleb/PycharmProjects/huyna/ru.json", shuffle=shuffle)[:100]
+    en_texts = load_text("/home/vodohleb/PycharmProjects/huyna/en.json", shuffle=shuffle)
+    ru_texts = load_text("/home/vodohleb/PycharmProjects/huyna/ru.json", shuffle=shuffle)
     texts = []
     labels = []
     en_index, ru_index = 0, 0
