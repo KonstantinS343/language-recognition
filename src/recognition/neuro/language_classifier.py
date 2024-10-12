@@ -1,7 +1,6 @@
 # Author: wormiz
 import torch
 from torch import nn
-from transformers import BertTokenizerFast, BertModel
 
 
 def define_device():
