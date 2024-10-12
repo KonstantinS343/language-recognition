@@ -200,12 +200,13 @@ def auto_create_neuro(
     tokenizer_dtype = torch.int64
     tokenizer = BertTokenizerFast.from_pretrained("google-bert/bert-base-multilingual-uncased")
     encoder = BertModel.from_pretrained("google-bert/bert-base-multilingual-uncased")
+    encoder_output_size = 768
 
     classifier_model = LanguageClassifier(
-        tokenizer, encoder,
+        tokenizer, encoder, encoder_output_size,
         window_size, window_stride, num_classes,
         device, layers_dtype, tokenizer_dtype,
-        encoder_output_size= 768, hidden_layers=[384, 192], encoder_requires_gradients=False
+        hidden_layers=[384, 192], encoder_requires_gradients=False
     )
     neuro_method = NeuroMethod(classifier_model, device, layers_dtype, weights_filename=path_to_load_model)
     if custom_labels_mapping is not None:
