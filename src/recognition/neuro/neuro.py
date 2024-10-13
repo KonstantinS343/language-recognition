@@ -292,12 +292,26 @@ def main(validation_save_path, last_epoch_save_path):
     neuro_method.test(test_loader)
 
 
+def load_and_test(weights_filename):
+    regexp = re.compile(r'(\b\w*\d\w*\b|[^a-zA-Zа-яА-Я0-9\s])')
+    texts, labels = make_dataset_content(regexp, shuffle=True)
+    _, test_loader, _ = make_dataloaders(texts, labels)
+    neuro_method = auto_create_neuro(
+        window_size=256, window_stride=128, num_classes=2,
+        path_to_load_model=weights_filename, return_classifier=False
+    )
+    print("Testing...")
+    neuro_method.eval_mod()
+    neuro_method.test(test_loader)
+
+
 if __name__ == "__main__":
     import random
     import json
     import re
     # TODO replace filenames
     main("/home/vodohleb/PycharmProjects/huyna/chep_best.pt", "/home/vodohleb/PycharmProjects/huyna/chep.pt")
+    #load_and_test("/home/vodohleb/PycharmProjects/huyna/chep_best.pt")
     
     
 
