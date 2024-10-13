@@ -52,6 +52,11 @@ class LanguageClassifier(nn.Module):
                 nn.init.kaiming_normal_(module)
 
 
+    def turn_off_encoder_grads(self):
+        for encoder_param in self._encoder_model.parameters():
+                encoder_param.requires_grad = False
+
+
     def __init__(
             self,
             tokenizer, encoder_model, encoder_output_size,
@@ -65,8 +70,7 @@ class LanguageClassifier(nn.Module):
         self._tokenizer = tokenizer
         self._encoder_model = encoder_model.to(device)
         if not encoder_requires_gradients:
-            for encoder_param in self._encoder_model.parameters():
-                encoder_param.requires_grad = False
+            self.turn_off_encoder_grads()
         
         self._init_layers(encoder_output_size, hidden_layers, num_classes, device, layers_dtype)
 
