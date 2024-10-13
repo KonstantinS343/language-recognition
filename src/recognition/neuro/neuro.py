@@ -159,7 +159,7 @@ class NeuroMethod:
     
     def get_language(self, text):
         label = self._classifier.predict(text, method="mode-argmax", return_one_hot=False)
-        return self.labels_mapping[label]
+        return self.labels_mapping[label.item()]
     
 
     def train_mod(self):
@@ -211,6 +211,7 @@ def auto_create_neuro(
     neuro_method = NeuroMethod(classifier_model, device, layers_dtype, weights_filename=path_to_load_model)
     if custom_labels_mapping is not None:
         neuro_method.labels_mapping = custom_labels_mapping
+    neuro_method.eval_mod()
     if return_classifier:
         return neuro_method, classifier_model
     else:
@@ -310,8 +311,8 @@ if __name__ == "__main__":
     import json
     import re
     # TODO replace filenames
-    main("/home/vodohleb/PycharmProjects/huyna/chep_best.pt", "/home/vodohleb/PycharmProjects/huyna/chep.pt")
-    #load_and_test("/home/vodohleb/PycharmProjects/huyna/chep_best.pt")
+    #main("/home/vodohleb/PycharmProjects/huyna/chep_best.pt", "/home/vodohleb/PycharmProjects/huyna/chep.pt")
+    load_and_test("/home/vodohleb/PycharmProjects/huyna/chep_best.pt")
     
     
 
