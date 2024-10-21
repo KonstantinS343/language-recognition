@@ -9,24 +9,22 @@ from decimal import Decimal
 from parser.html_parser import Parser
 from recognition.n_gramm.ngramm import Ngramm
 from recognition.alphabet.alphabet import Alphabet
-from recognition.neuro.neuro import NeuroMethod, auto_create_neuro
+from recognition.neuro.neuro import neuro
+from summarization.core import Summarization
 from models.model import RecognitionMethod, FileObject, Language, QueryRespose, LanguageResponse
 
 
 class Controller:
     
-    IP = 'http://localhost:2000/static/'
-    NETWORK_NET_WEIGHTS = None# "/pass/to/model/weights.pt"
+    IP = 'http://192.168.112.163/static/'
     
     @classmethod
     async def init_resolver_mapping(cls):
         cls.resolver_mapping = {
             'ngramm': Ngramm.ngramm_methods,
             'alphabet': Alphabet.alphabet_method,
-            'neuro': auto_create_neuro(
-                window_size=256, window_stride=128, num_classes=2,
-                path_to_load_model=Controller.NETWORK_NET_WEIGHTS
-            ).get_language
+            'neuro': neuro.get_language,
+            'summarization': Summarization.resolve
         }
     
     @classmethod
@@ -34,7 +32,7 @@ class Controller:
         if not hasattr(cls, 'resolver_mapping'):
             await cls.init_resolver_mapping()
             
-        language_recognition = []
+        responses = []
         
         for text in texts:
             if recognition_method == RecognitionMethod.ALPHABET:
@@ -44,18 +42,22 @@ class Controller:
             elif recognition_method == RecognitionMethod.NEURO:
                 content = await Parser.parse(text.content)
                 user_profile = re.sub(r'(\b\w*\d\w*\b|[^a-zA-Zа-яА-Я0-9\s])', ' ', content).strip()
+            elif recognition_method == RecognitionMethod.SUMMARIZATION:
+                content = await Parser.parse(text.content)
+                user_profile = re.sub(r'(\b\w*\d\w*\b|[^a-zA-Zа-яА-Я0-9\s])', ' ', content).strip()
                 
             with open('log.json', 'w') as f:
                 json.dump(user_profile, f, indent=4, ensure_ascii=False)
-                
-            prediction =  await cls.resolver_mapping[recognition_method.value](user_profile)
             
-            language_recognition.append((text.filename, prediction))
-        
-        precision = await cls.calculate_precision(language_recognition, texts)
+            response = await cls.resolver_mapping[recognition_method.value](user_profile)
             
+            responses.append((text.filename, response))
+        precision = 1    
         
-        return await cls.response(language_recognition, precision)
+        if recognition_method != RecognitionMethod.SUMMARIZATION:
+            precision = await cls.calculate_precision(responses, texts)
+        
+        return await cls.response(responses, precision)
         
     @classmethod
     async def preprocess_alphabet_data(cls, text: str) -> Mapping[str, int]:
@@ -65,7 +67,7 @@ class Controller:
         letter_counts = defaultdict(int)
         for letter in new_text:
             if letter.isalpha():
-                letter_counts[letter] += 1
+                letter_counts[letter.lower()] += 1
                 
         return letter_counts
         
@@ -102,15 +104,16 @@ class Controller:
         return Decimal(precision / len(texts)).quantize(Decimal('1.000'))
     
     @classmethod
-    async def response(cls, language_recognition: Sequence[Sequence[str|Language]], precision: Decimal) -> QueryRespose:
+    async def response(cls, responses: Sequence[Sequence[str|Language]], precision: Decimal) -> QueryRespose:
         reponse = []
         
-        for i in language_recognition:
-            reponse.append(
-                LanguageResponse(
-                    doc=cls.IP + i[0],
-                    language=i[1].value
-                )
-            )
+        for i in responses:
+            
+            try:
+                item = LanguageResponse(doc=cls.IP + i[0], value=i[1].value)
+            except AttributeError:
+                item = LanguageResponse(doc=cls.IP + i[0], value=i[1])
+            
+            reponse.append(item)
         
         return QueryRespose(response=reponse, precision=precision)

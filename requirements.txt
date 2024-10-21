@@ -5,7 +5,8 @@ nltk==3.9.1
 python-multipart==0.0.12
 aiofiles==24.1.0
 beautifulsoup4==4.12
-lingua-language-detector==2.0.2
+langdetect==1.0.9
 torch --index-url https://download.pytorch.org/whl/cu118
 transformers
 scikit-learn==1.5.2
+yake==0.4.8

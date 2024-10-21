@@ -12,6 +12,7 @@ class RecognitionMethod(Enum):
     NGRAMM = 'ngramm'
     ALPHABET = 'alphabet'
     NEURO = 'neuro'
+    SUMMARIZATION = 'summarization'
     
 class Language(Enum):
     RUSSIAN = 'Russian'
@@ -19,7 +20,7 @@ class Language(Enum):
     
 class LanguageResponse(BaseModel):
     doc: str
-    language: str
+    value: str | List[str]
 
 class QueryRespose(BaseModel):
     response: List[LanguageResponse]
