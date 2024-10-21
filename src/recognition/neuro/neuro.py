@@ -9,9 +9,9 @@ from sklearn import metrics
 import torch.utils
 import torch.utils.data
 from transformers import BertTokenizerFast, BertModel 
-from src.recognition.neuro.language_classifier import LanguageClassifier, define_device
-from src.models.model import Language
-from src.recognition.neuro.dataset import CustomDataset
+from recognition.neuro.language_classifier import LanguageClassifier, define_device
+from models.model import Language
+from recognition.neuro.dataset import CustomDataset
 
 
 
@@ -157,7 +157,7 @@ class NeuroMethod:
         self.metrics(predictions, real_labels)
 
     
-    def get_language(self, text):
+    async def get_language(self, text):
         label = self._classifier.predict(text, method="mode-argmax", return_one_hot=False)
         return self.labels_mapping[label.item()]
     

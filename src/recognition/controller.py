@@ -16,7 +16,7 @@ from models.model import RecognitionMethod, FileObject, Language, QueryRespose, 
 class Controller:
     
     IP = 'http://localhost:2000/static/'
-    NETWORK_NET_WEIGHTS = None# "/pass/to/model/weights.pt"
+    NETWORK_WEIGHTS = None# "/pass/to/model/weights.pt"
     
     @classmethod
     async def init_resolver_mapping(cls):
@@ -25,7 +25,7 @@ class Controller:
             'alphabet': Alphabet.alphabet_method,
             'neuro': auto_create_neuro(
                 window_size=256, window_stride=128, num_classes=2,
-                path_to_load_model=Controller.NETWORK_NET_WEIGHTS
+                path_to_load_model=Controller.NETWORK_WEIGHTS
             ).get_language
         }
     
