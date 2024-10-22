@@ -47,7 +47,7 @@ class EmbeddingModel(nn.Module):
 
         for key in x.keys():
             x[key] = x[key].to(self.device)
-        overflow_mapping = temp.pop("overflow_to_sample_mapping").numpy().tolist()
+        overflow_mapping = x.pop("overflow_to_sample_mapping").numpy().tolist()
 
         x = self._model(**x)
         x = x.last_hidden_state.mean(dim=1)
