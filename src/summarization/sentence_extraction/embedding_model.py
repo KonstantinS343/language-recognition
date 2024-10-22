@@ -21,6 +21,9 @@ class EmbeddingModel(nn.Module):
         for param in self._model.parameters():
             param.requires_grad = False
 
+        self.device = device
+
+
 
     @staticmethod
     def _handle_overflowing_length(x, overflow_mapping):
@@ -43,7 +46,7 @@ class EmbeddingModel(nn.Module):
         )
 
         for key in x.keys():
-            x[key] = x[key].to(self._device)
+            x[key] = x[key].to(self.device)
         overflow_mapping = temp.pop("overflow_to_sample_mapping").numpy().tolist()
 
         x = self._model(**x)
