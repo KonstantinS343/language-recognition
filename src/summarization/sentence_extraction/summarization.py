@@ -70,18 +70,73 @@ class SentenceExtractionSummarization:
 if __name__ == "__main__":
     from transformers import BertTokenizerFast, BertModel
     device = define_device()
+    tokenizer = BertTokenizerFast.from_pretrained("google-bert/bert-base-multilingual-uncased")
+    model = BertModel.from_pretrained("google-bert/bert-base-multilingual-uncased").to(device)
     emb_mod = EmbeddingModel(
-        tokenizer=BertTokenizerFast.from_pretrained("google-bert/bert-base-multilingual-uncased"),
-        model=BertModel.from_pretrained("google-bert/bert-base-multilingual-uncased").to(device),
+        tokenizer=tokenizer,
+        model=model,
         window_size=7,
         window_stride=4,
         device=device
     )
     ses = SentenceExtractionSummarization(emb_mod)
 
-    print(
-        ses.handle_summarization_request("nigga")
+    # print(
+    #     ses.handle_summarization_request("nigga")
+    # )
+
+    text = """
+My skin is cold
+Transfusion with somebody
+Morose and old
+Drop into fruitless dying
+It was tempting and bared
+The whoring angel rising
+Now burning prayers
+My silent time of losing
+My foes, they can't destroy my body
+Colliding slow, like life itself
+Long for the blur
+We cannot dry much longer
+Cement to dirt
+Disgusted with my cheapness
+My foes they can't destroy my body
+Colliding slow, like life itself
+My foes, my foes they can't destroy my body
+Colliding slow, like life itself
+My foes they can't destroy my body
+Colliding slow, like life itself
+My foes, my foes they can't destroy my body
+Colliding slow, like life itself, like life itself
+    """
+    tokenized = tokenizer(
+        text,
+        truncation=True,
+        max_length=32, stride=16,
+        return_tensors="pt", return_overflowing_tokens=True, padding="max_length"
     )
+
+    for key in tokenized.keys():
+        tokenized[key] = tokenized[key].to(device)
+    overflow_mapping = tokenized.pop("overflow_to_sample_mapping").detach().cpu().numpy().tolist()
+
+    out = model(**tokenized).last_hidden_state
+    max = torch.max(out)
+    min = torch.min(out)
+    print(out.shape, torch.mean(out).shape)
+
+    print(f"max:\t{max}\nmin:\t{min}\nmean:\t{torch.mean(out)}")
+
+
+    out = model(**tokenized).last_hidden_state.mean(dim=1)
+    max = torch.max(out)
+    min = torch.min(out)
+    print(out.shape, torch.mean(out).shape)
+
+    print(f"max:\t{max}\nmin:\t{min}\nmean:\t{torch.mean(out)}")
+
+
+
 
 
 
