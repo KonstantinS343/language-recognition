@@ -1,17 +1,16 @@
-# Author: wormiz
+# Author: Vodohleb04
 import sys  # TODO remove
 sys.path.append("/home/vodohleb/PycharmProjects/language-recognition")
 
 import datetime
 import torch
-from torch.nn import functional as F
 from sklearn import metrics
 import torch.utils
 import torch.utils.data
 from transformers import BertTokenizerFast, BertModel 
-from recognition.neuro.language_classifier import LanguageClassifier, define_device
-from models.model import Language
-from recognition.neuro.dataset import CustomDataset
+from src.recognition.neuro.language_classifier import LanguageClassifier, define_device
+from src.models.model import Language
+from src.recognition.neuro.dataset import CustomDataset
 
 
 
@@ -39,6 +38,8 @@ class NeuroMethod:
         self._classifier.train()
         iters = 0
         for texts_batch, labels_batch in dataloader:
+            if iters % 50 == 0:
+                print(f"\tIteration: {iters}")
             optimizer.zero_grad(set_to_none=True)
             logits, batch_mapping = self._classifier.train_forward(
                 texts_batch, return_batch_mapping=True
@@ -46,8 +47,8 @@ class NeuroMethod:
 
             target_labels = []
             for index in batch_mapping:
-                target_labels.append(self._one_hot(labels_batch[index]))
-            target_labels = torch.as_tensor(target_labels).type(self._dtype).to(self._device)
+                target_labels.append(labels_batch[index])
+            target_labels = torch.as_tensor(target_labels).to(self._device)
 
             loss = loss_function(logits, target=target_labels)
             loss.backward()
@@ -227,8 +228,8 @@ def load_text(path, shuffle=False):
 
 
 def make_dataset_content(regexp, shuffle=False):
-    en_texts = load_text("/home/vodohleb/PycharmProjects/huyna/en.json", shuffle=shuffle)
-    ru_texts = load_text("/home/vodohleb/PycharmProjects/huyna/ru.json", shuffle=shuffle)
+    en_texts = load_text("/home/yackub/PycharmProjects/huyna/en.json", shuffle=shuffle)
+    ru_texts = load_text("/home/yackub/PycharmProjects/huyna/ru.json", shuffle=shuffle)
     texts = []
     labels = []
     en_index, ru_index = 0, 0
@@ -311,8 +312,8 @@ if __name__ == "__main__":
     import json
     import re
     # TODO replace filenames
-    #main("/home/vodohleb/PycharmProjects/huyna/chep_best.pt", "/home/vodohleb/PycharmProjects/huyna/chep.pt")
-    load_and_test("/home/vodohleb/PycharmProjects/huyna/chep_best.pt")
+    main("/home/yackub/PycharmProjects/huyna/chep_best.pt", "/home/yackub/PycharmProjects/huyna/chep.pt")
+    #load_and_test("/home/vodohleb/PycharmProjects/huyna/chep_best.pt")
     
     
 
